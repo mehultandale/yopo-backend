@@ -85,4 +85,38 @@ router.post('/authenticate', function(req, res) {
 	});
 });
 
+// Middleware to check authentication
+router.use(function(req, res, next) {
+	var token = req.body.token;
+
+  	if (token) {
+
+    	// verifies secret and checks exp
+    	jwt.verify(token, "YOPOsecretishere", function(err, decoded) {
+      		if (err) {
+        		return res.json({ "status": 204, "message": "Invalid token" });
+      		} else {
+        		// save to request for use in other routes
+        		req.decoded = decoded;
+        		next();
+      		}
+    	});
+  	} else {
+	    return res.json({
+    	    "status": 204,
+        	"message": "No token provided"
+    	});
+	}
+});
+
+// Get user list
+router.post('/', function(req, res, next) {
+	var cursor = db.collection('users').find();
+	cursor.toArray(function(err, results) {
+		res.json({
+			"userList": results
+		});
+	});
+});
+
 module.exports = router;
